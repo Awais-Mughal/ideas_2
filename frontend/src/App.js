@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import * as Pop from '@radix-ui/react-popover';
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
 import { Info, TriangleAlert, ExternalLink, Loader2 } from 'lucide-react';
+import { computeInsights } from './lib/insights';
 import { Toaster, toast } from 'sonner';
 import api from './lib/api';
 import { formatCurrency, formatLargeNumber, formatPercent, getPositiveNegativeClass, getHealthBadge } from './lib/format';
@@ -26,6 +27,7 @@ export default function App() {
   const [analyst, setAnalyst] = useState(null);
   const [peers, setPeers] = useState([]);
   const [status, setStatus] = useState('loading');
+  const insights = computeInsights(chart);
 
   useEffect(() => localStorage.setItem('sophii_watchlist_v1', JSON.stringify(watch)), [watch]);
 
@@ -69,7 +71,7 @@ export default function App() {
         {status !== 'ready' ? <SectionState type={status} /> : <>
           <section data-testid='stock-header' className='border p-4'><div className='mono text-5xl'>{formatCurrency(sum?.price)}</div><div className={getPositiveNegativeClass(sum?.change_pct)}>{formatPercent(sum?.change_pct)}</div><div className='grid grid-cols-2 md:grid-cols-3 gap-2 text-sm mt-2'><div>Market cap {formatLargeNumber(sum?.mkt_cap)}</div><div>Volume {formatLargeNumber(sum?.volume)}</div><div>Prev close {formatCurrency(sum?.prev_close)}</div></div><button data-testid={watchHas ? 'remove-watchlist-button' : 'add-watchlist-button'} onClick={() => { if (watchHas) { setWatch(watch.filter((x) => x !== ticker)); toast('Removed from watchlist'); } else { setWatch([...watch, ticker]); toast('Added to watchlist'); } }} className='bg-[#D1D1FF] text-[#0000FE] px-3 py-2 mt-3'>{watchHas ? 'Remove' : 'Add'} Watchlist</button></section>
           <section data-testid='price-chart' className='border p-4'><div>{['1W','1M','3M','1Y','5Y'].map((r) => <button data-testid='chart-range-tab' key={r} onClick={() => setRange(r)} className={`border px-2 py-1 mr-2 ${range === r ? 'bg-[#0000FE] text-white' : ''}`}>{r}</button>)}</div><div style={{ height: 300 }}>{chart?.length ? <ResponsiveContainer><AreaChart data={chart}><Tooltip /><Area type='monotone' dataKey='c' stroke='#0000FE' fillOpacity={0.12} fill='#0000FE' /></AreaChart></ResponsiveContainer> : <div className='p-3'>No chart data available.</div>}</div></section>
-          <section data-testid='chart-insights' className='border p-3'><Insight title='Trend' text='Trend may suggest a moderate direction over selected period.' /></section>
+          <section data-testid='chart-insights' className='border p-3'><h3>Chart Patterns · Beginner Read</h3>{insights.length?insights.map((it)=><Insight key={it.key} title={it.label} text={it.text} signal={it.signal}/>):<div>No insight data available.</div>}</section>
           <section data-testid='buy-verdict' className='border p-3'><h3>Beginner’s Verdict <span className='text-xs bg-[#D1D1FF] px-2'>Educational · not advice</span></h3><div>Mixed profile of signals. Educational only.</div></section>
           <section data-testid='metrics-grid' className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2'>{['pe_trailing','pe_forward','revenue','debt_to_equity'].map((k) => <Pop.Root key={k}><Pop.Trigger data-testid='metric-tile' className='border p-2 text-left'><div className='uppercase text-xs'>{k} <Info size={12} /></div><div className='mono'>{String(sum?.[k] ?? 'N/A')}</div><div className='text-xs'>{getHealthBadge(k, sum?.[k])}</div></Pop.Trigger><Pop.Portal><Pop.Content data-testid='metric-popover' className='border-2 border-black bg-white p-3'>WHAT IT IS · HOW TO READ IT · FOR THIS STOCK</Pop.Content></Pop.Portal></Pop.Root>)}</section>
           <section data-testid='peer-table' className='border p-3 overflow-auto'><table className='w-full text-sm'><tbody>{peers.map((p) => <tr key={p.ticker} className={p.ticker === ticker ? 'bg-[#0000FE] text-white' : ''}><td>{p.ticker}</td><td>{p.name}</td><td className='mono'>{formatCurrency(p.price)}</td></tr>)}</tbody></table></section>
@@ -88,4 +90,4 @@ export default function App() {
 }
 
 function Tape({ t }) { const [d, setD] = useState(null); useEffect(() => { api.quote(t).then(setD).catch(() => setD({ ticker: t, price: null, change_pct: null })); }, [t]); return <span className='mr-3 mono'>{t} {d ? formatCurrency(d.price) : '...'} <span className={getPositiveNegativeClass(d?.change_pct)}>{d ? formatPercent(d.change_pct) : ''}</span></span>; }
-function Insight({ title, text }) { return <Pop.Root><Pop.Trigger data-testid='chart-insight-row' className='border p-2 w-full text-left'>{title} <Info size={12} /> {text}</Pop.Trigger><Pop.Portal><Pop.Content data-testid='chart-insight-popover' className='border-2 border-black bg-white p-3'>WHAT IT IS · HOW TRADERS READ IT · FOR THIS STOCK</Pop.Content></Pop.Portal></Pop.Root>; }
+function Insight({ title, text, signal }) { return <Pop.Root><Pop.Trigger data-testid='chart-insight-row' className='border p-2 w-full text-left'><div className='flex justify-between'><span>{title}</span><span>{signal}</span></div><div>{text}</div></Pop.Trigger><Pop.Portal><Pop.Content data-testid='chart-insight-popover' className='border-2 border-black bg-white p-3'><div>WHAT IT IS</div><div>HOW TRADERS READ IT</div><div>FOR THIS STOCK</div></Pop.Content></Pop.Portal></Pop.Root>; }

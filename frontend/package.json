@@ -1,0 +1,26 @@
+{
+  "name": "sophii-terminal-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "lucide-react": "^0.511.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1",
+    "recharts": "^2.12.7",
+    "sonner": "^1.5.0",
+    "@radix-ui/react-popover": "^1.1.9"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.0",
+    "tailwindcss": "^3.4.10",
+    "postcss": "^8.4.45",
+    "autoprefixer": "^10.4.20"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "e2e": "playwright test"
+  }
+}

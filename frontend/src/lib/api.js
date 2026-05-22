@@ -1,0 +1,3 @@
+const BASE = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+async function j(path){const r=await fetch(`${BASE}${path}`); if(!r.ok) throw new Error('Request failed'); return r.json();}
+export default {health:()=>j('/api/health'),search:(q)=>j(`/api/stock/search?q=${encodeURIComponent(q)}`),stock:(t)=>j(`/api/stock/${t}`),chart:(t,r)=>j(`/api/stock/${t}/chart?range=${r}`),metrics:(t)=>j(`/api/stock/${t}`),peers:(t)=>j(`/api/stock/${t}/peers`),analyst:(t)=>j(`/api/stock/${t}/analyst`),sentiment:(t)=>j(`/api/stock/${t}/sentiment`),watch:(arr)=>j(`/api/watchlist/summary?tickers=${arr.join(',')}`),quote:(t)=>j(`/api/stock/${t}/quote`)};

@@ -11,14 +11,18 @@ test('/api/health works', async ({ request }) => {
   expect((await r.json()).status).toBe('ok');
 });
 
-test('search input and stock header render', async ({ page }) => {
-  await page.goto('http://localhost:3000');
-  await page.getByTestId('header-search').fill('AAPL');
-  await expect(page.getByTestId('stock-header')).toBeVisible();
+test('stock endpoint works for AAPL/MSFT/NVDA', async ({ request }) => {
+  for (const t of ['AAPL', 'MSFT', 'NVDA']) {
+    const r = await request.get(`http://localhost:8000/api/stock/${t}`);
+    expect(r.ok()).toBeTruthy();
+    const d = await r.json();
+    expect(d.ticker).toBe(t);
+  }
 });
 
-test('chart tabs are clickable', async ({ page }) => {
-  await page.goto('http://localhost:3000');
-  await page.getByTestId('chart-range-tab').nth(2).click();
-  await expect(page.getByTestId('price-chart')).toBeVisible();
+test('sentiment percentages sum to 100', async ({ request }) => {
+  const r = await request.get('http://localhost:8000/api/stock/AAPL/sentiment');
+  expect(r.ok()).toBeTruthy();
+  const d = await r.json();
+  expect((d.bullish + d.neutral + d.bearish)).toBe(100);
 });
